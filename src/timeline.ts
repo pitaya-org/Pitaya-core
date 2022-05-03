@@ -1,33 +1,34 @@
-import { _getAllFollowing } from './follow'
-import { getStorage } from './storage'
-import { getBinaryUrl } from './util'
+import {_getAllFollowing} from './follow'
+import {getOrbitDb, getStorage} from './storage'
+import {getBinaryUrl} from './util'
+import {Post} from "./post";
 
 export async function queryAllFollowingPosts(limit: number) {
     const following = await _getAllFollowing()
     const dbList = await Promise.all(
         following.map((it) =>
             (async function () {
-                const dbId = it.postId
-                const db = await getStorage('orbitDb').feed(dbId)
+                const dbId = it.postDbId
+                const db = await (await getOrbitDb()).feed(dbId)
                 await db.load()
                 return { db, lastPost: it.lastPost }
             })()
         )
     )
     console.log(dbList)
-    dbList.push({ db: _postDb, lastPost: null })
+    dbList.push({ db: getStorage("postDb"),lastPost: undefined })
     let posts = dbList
         .flatMap((it) => {
             const { db, lastPost } = it
             return db.iterator({ limit, gte: lastPost }).collect()
         })
         .map((it) => {
-            const result = it.payload.value
+            const result:Post = <Post>it.payload.value
             result.postId = it.hash
             return result
         })
         .sort((a, b) => a.timestamp - b.timestamp)
-    const urls = await Promise.all(
+    const urls:string[] = <string[]>await Promise.all(
         posts.map((it) => {
             if (it.mediaUrl.indexOf('blob') < 0) {
                 return getBinaryUrl(it.mediaUrl)

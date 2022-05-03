@@ -38,16 +38,16 @@ export async function initIpfs() {
         },
     })
     console.log('Create Ipfs:', ipfs)
-    console.log('2')
     await ipfs.pubsub.subscribe('news', (msg) => {
+        // @ts-ignore
         if (msg.from === ipfs.id) {
             return
         }
         const payload = JSON.parse(new TextDecoder('utf-8').decode(msg.data))
         const _knownPostDb = getStorage('knownPostDb')
-        if (!_knownPostDb[payload.postDbId]) {
+        if (!_knownPostDb.get(payload.postDbId)) {
             console.log('New post:', payload)
-            _knownPostDb[payload.postDbId] = { last: null }
+            _knownPostDb.set(payload.postDbId,{ last: null });
         }
     })
     console.log('Subscribe to news')

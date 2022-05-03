@@ -1,14 +1,23 @@
-import { getStorage } from './storage'
+import {getOrbitDb, getStorage} from './storage'
 import { getBinaryUrl } from './util'
 import { getDbId } from './user'
+import FeedStore from "orbit-db-feedstore";
 
-export const _commentsDbMap: Record<string, unknown> = {}
+export type Comment = {
+    username: string,
+    comment: string,
+    timestamp: string,
+    userDp: string,
+    userId: string
+}
+
+export const _commentsDbMap: Record<string, FeedStore<any>> = {}
 
 export async function countComments(commentAddr: string) {
     const commentDb =
         _commentsDbMap[commentAddr] ||
         (await (async () => {
-            const db = await getStorage('orbitDb').feed(commentAddr)
+            const db = await (await getOrbitDb()).feed(commentAddr)
             await db.load()
             _commentsDbMap[commentAddr] = db
             return db
@@ -20,17 +29,17 @@ async function _getComments(
     commentAddr: string,
     offset: number | null,
     limit: number
-) {
+): Promise<LogEntry<any>[]> {
     const commentDb =
         _commentsDbMap[commentAddr] ||
         (await (async () => {
-            const db = await getStorage('orbitDb').feed(commentAddr)
+            const db = await (await getOrbitDb()).feed(commentAddr)
             await db.load()
             _commentsDbMap[commentAddr] = db
             return db
         })())
     const comments = commentDb
-        .iterator({ limit, gt: offset || undefined })
+        .iterator({ limit, gt: offset?.toString() || undefined })
         .collect()
     console.log(comments)
     return comments
@@ -39,7 +48,7 @@ export async function getComments(
     commentAddr: string,
     offset: number,
     limit: number
-) {
+): Promise<String> {
     const all = (await _getComments(commentAddr, offset, limit)).map(
         (it) => it.payload.value
     )
@@ -64,7 +73,7 @@ export async function addComment(commentAddr: string, jsonStr: string) {
     const commentDb =
         _commentsDbMap[commentAddr] ||
         (await (async () => {
-            const db = await getStorage('orbitDb').feed(commentAddr)
+            const db = await (await getOrbitDb()).feed(commentAddr)
             await db.load()
             _commentsDbMap[commentAddr] = db
             return db
@@ -80,7 +89,7 @@ export async function removeComment(commentAddr: string, hash: string) {
     const commentDb =
         _commentsDbMap[commentAddr] ||
         (await (async () => {
-            const db = await getStorage('orbitDb').feed(commentAddr)
+            const db = await (await getOrbitDb()).feed(commentAddr)
             await db.load()
             _commentsDbMap[commentAddr] = db
             return db
@@ -105,5 +114,8 @@ export async function unlike(commentAddr: string) {
     const json = all.find(
         (it) => it.payload.value.userId === getDbId() && it.payload.value.isLike
     )
-    await removeComment(commentAddr, json.payload.hash)
+    if(!json){
+        return;
+    }
+    await removeComment(commentAddr, json.hash)
 }

@@ -1,10 +1,23 @@
 // @ts-ignore
 import OrbitDB from 'orbit-db'
 import { ipfs } from './init'
-import { getStorage, setStorage } from './storage'
+import {getOrbitDb, getStorage, setStorage} from './storage'
 import { getBinaryUrl } from './util'
 import { _commentsDbMap } from './comment'
-
+import KeyValueStore from "orbit-db-kvstore";
+export type User={
+    username:string,
+    email:string,
+    photoUrl:string,
+    country:string,
+    bio:string
+    id:string,
+    signedUpAt:number,
+    lastSeen:number,
+    isOnline:boolean,
+    followDbId:string,
+    postDbId:string
+}
 export function publishMe() {
     setInterval(() => {
         ;(async () => {
@@ -12,7 +25,7 @@ export function publishMe() {
                 'news',
                 new TextEncoder().encode(
                     JSON.stringify({
-                        postDbId: getStorage('postDb').id,
+                        postDbId: getStorage('postDb').identity.id,
                     })
                 )
             )
@@ -21,7 +34,7 @@ export function publishMe() {
 }
 
 export async function registerUser(username: string) {
-    const orbitdb = await OrbitDB.createInstance(ipfs)
+    const orbitdb = await getOrbitDb();
     const db = await orbitdb.keyvalue(username)
     const followDb = await orbitdb.feed(`${username}.follow`)
     const postDb = await orbitdb.feed(`${username}.posts`)
@@ -29,7 +42,7 @@ export async function registerUser(username: string) {
     await followDb.load()
     await postDb.load()
     db.events.on('replicated', () => {
-        console.log(db.iterator({ limit: -1 }).collect())
+        console.log(db.all)
     })
     console.log('UserDb:', db)
     console.log('FollowDb:', followDb)
@@ -41,49 +54,47 @@ export async function registerUser(username: string) {
         console.log('Create New User')
         db.set('user', {
             username,
-            email: db.id,
-            country: db.id,
+            email: db.identity.id,
+            country: db.identity.id,
             photoUrl: 'https://avatars.githubusercontent.com/u/1',
             bio: '',
-            id: db.id,
-            followDbId: followDb.id,
-            postDbId: postDb.id,
+            id: db.identity.id,
+            followDbId: followDb.identity.id,
+            postDbId: postDb.identity.id,
         })
         db.set('posts', { count: 0 })
         db.set('followings', { count: 0 })
     }
 
-    setStorage('orbitDb', orbitdb)
     setStorage('myDb', db)
     setStorage('followDb', followDb)
     setStorage('postDb', postDb)
 
     publishMe()
-    return db.id
+    return db.identity.id
 }
 
 export async function login(dbId: string) {
-    const orbitdb = await OrbitDB.createInstance(ipfs)
+    const orbitdb = await getOrbitDb();
     const db = await orbitdb.keyvalue(dbId, { localOnly: true })
     await db.load()
-    const me = db.get('user')
+    const me:User = <User> db.get('user')
     console.log('Login', me)
     const followDb = await orbitdb.feed(me.followDbId)
     const postDb = await orbitdb.feed(me.postDbId)
     await followDb.load()
     await postDb.load()
 
-    setStorage('orbitDb', orbitdb)
     setStorage('myDb', db)
     setStorage('followDb', followDb)
     setStorage('postDb', postDb)
 
     publishMe()
-    return db.id
+    return db.identity.id
 }
 
 export function getDbId() {
-    return getStorage('myDb').id
+    return getStorage('myDb').identity.id
 }
 
 export async function updateMyPhoto(path: string) {
@@ -100,13 +111,13 @@ export async function getMyProfile() {
     return JSON.stringify(me)
 }
 
-const _userMap: Record<string, unknown> = {}
+const _userMap: Record<string, KeyValueStore<any>> = {}
 
 export async function getUser(userAddr: string) {
     const userDb =
-        _commentsDbMap[userAddr] ||
+        _userMap[userAddr] ||
         (await (async () => {
-            const db = await getStorage('orbitDb').keyvalue(userAddr)
+            const db = await (await getOrbitDb()).keyvalue(userAddr)
             await db.load()
             _userMap[userAddr] = db
             return db

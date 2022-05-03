@@ -1,7 +1,18 @@
 import md5 from 'md5'
-import { getStorage } from './storage'
+import {getOrbitDb, getStorage} from './storage'
 import { getBinaryUrl } from './util'
 import { getDbId } from './user'
+
+export type Post = {
+    postId:string,
+    ownerId:string,
+    username:string,
+    location:string,
+    description:string,
+    mediaUrl:string,
+    timestamp:number,
+    commentAddr:string
+}
 
 export async function countMyPosts() {
     return getStorage('myDb').get('posts').count
@@ -9,7 +20,7 @@ export async function countMyPosts() {
 
 export async function getMyPosts(offset: number, limit: number) {
     const all = getStorage('postDb')
-        .iterator({ limit, gt: offset || undefined })
+        .iterator({ limit, gt: offset.toString() || undefined })
         .collect()
         .map((it) => {
             const result = it.payload.value
@@ -34,8 +45,8 @@ export async function getMyPosts(offset: number, limit: number) {
 
 export async function postMine(p: string) {
     const json = JSON.parse(p)
-    const commentsDb = await getStorage('orbitDb').feed(md5(p))
-    json.commentAddr = commentsDb.id
+    const commentsDb = await (await getOrbitDb()).feed(md5(p))
+    json.commentAddr = commentsDb.identity.id
     json.ownerId = getDbId()
     json.username = getStorage('myDb').get('user').username
     json.timestamp = new Date().getTime()

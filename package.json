@@ -51,6 +51,7 @@
     "@types/md5": "^2.3.2",
     "@typescript-eslint/eslint-plugin": "^5.21.0",
     "@typescript-eslint/parser": "^5.21.0",
+    "@types/orbit-db": "git+https://github.com/orbitdb/orbit-db-types.git",
     "babel-loader": "^8.2.5",
     "buffer": "^6.0.3",
     "eslint": "^8.14.0",

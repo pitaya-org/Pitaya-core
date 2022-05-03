@@ -10,7 +10,7 @@ export async function uploadBinary(binary: Blob) {
     return result.path
 }
 
-export async function getBinaryUrl(path: string) {
+export async function getBinaryUrl(path: string): Promise<string> {
     const array = []
     for await (const buf of ipfs.cat(path)) {
         array.push(buf)
