@@ -13,6 +13,7 @@ let orbitDb: OrbitDB | null = null;
 
 export async function getOrbitDb(): Promise<OrbitDB> {
     if (orbitDb == null) {
+        // @ts-ignore
         orbitDb = await OrbitDB.createInstance(ipfs);
     }
     return orbitDb;
