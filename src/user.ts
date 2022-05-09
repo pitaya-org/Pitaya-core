@@ -1,22 +1,23 @@
 // @ts-ignore
 import OrbitDB from 'orbit-db'
+import KeyValueStore from 'orbit-db-kvstore'
 import { ipfs } from './init'
-import {getOrbitDb, getStorage, setStorage} from './storage'
+import { getOrbitDb, getStorage, setStorage } from './storage'
 import { getBinaryUrl } from './util'
 import { _commentsDbMap } from './comment'
-import KeyValueStore from "orbit-db-kvstore";
-export type User={
-    username:string,
-    email:string,
-    photoUrl:string,
-    country:string,
-    bio:string
-    id:string,
-    signedUpAt:number,
-    lastSeen:number,
-    isOnline:boolean,
-    followDbId:string,
-    postDbId:string
+
+export type User = {
+    username: string
+    email: string
+    photoUrl: string
+    country: string
+    bio: string
+    id: string
+    signedUpAt: number
+    lastSeen: number
+    isOnline: boolean
+    followDbId: string
+    postDbId: string
 }
 export function publishMe() {
     setInterval(() => {
@@ -34,7 +35,7 @@ export function publishMe() {
 }
 
 export async function registerUser(username: string) {
-    const orbitdb = await getOrbitDb();
+    const orbitdb = await getOrbitDb()
     const db = await orbitdb.keyvalue(username)
     const followDb = await orbitdb.feed(`${username}.follow`)
     const postDb = await orbitdb.feed(`${username}.posts`)
@@ -75,10 +76,10 @@ export async function registerUser(username: string) {
 }
 
 export async function login(dbId: string) {
-    const orbitdb = await getOrbitDb();
+    const orbitdb = await getOrbitDb()
     const db = await orbitdb.keyvalue(dbId, { localOnly: true })
     await db.load()
-    const me:User = <User> db.get('user')
+    const me: User = <User>db.get('user')
     console.log('Login', me)
     const followDb = await orbitdb.feed(me.followDbId)
     const postDb = await orbitdb.feed(me.postDbId)

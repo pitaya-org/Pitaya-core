@@ -47,7 +47,7 @@ export async function initIpfs() {
         const _knownPostDb = getStorage('knownPostDb')
         if (!_knownPostDb.get(payload.postDbId)) {
             console.log('New post:', payload)
-            _knownPostDb.set(payload.postDbId,{ last: null });
+            _knownPostDb.set(payload.postDbId, { last: null })
         }
     })
     console.log('Subscribe to news')

@@ -1,13 +1,13 @@
-import {getOrbitDb, getStorage} from './storage'
+import FeedStore from 'orbit-db-feedstore'
+import { getOrbitDb, getStorage } from './storage'
 import { getBinaryUrl } from './util'
 import { getDbId } from './user'
-import FeedStore from "orbit-db-feedstore";
 
 export type Comment = {
-    username: string,
-    comment: string,
-    timestamp: string,
-    userDp: string,
+    username: string
+    comment: string
+    timestamp: string
+    userDp: string
     userId: string
 }
 
@@ -48,7 +48,7 @@ export async function getComments(
     commentAddr: string,
     offset: number,
     limit: number
-): Promise<String> {
+): Promise<string> {
     const all = (await _getComments(commentAddr, offset, limit)).map(
         (it) => it.payload.value
     )
@@ -114,8 +114,8 @@ export async function unlike(commentAddr: string) {
     const json = all.find(
         (it) => it.payload.value.userId === getDbId() && it.payload.value.isLike
     )
-    if(!json){
-        return;
+    if (!json) {
+        return
     }
     await removeComment(commentAddr, json.hash)
 }
