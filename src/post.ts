@@ -1,17 +1,17 @@
 import md5 from 'md5'
-import {getOrbitDb, getStorage} from './storage'
+import { getOrbitDb, getStorage } from './storage'
 import { getBinaryUrl } from './util'
 import { getDbId } from './user'
 
 export type Post = {
-    postId:string,
-    ownerId:string,
-    username:string,
-    location:string,
-    description:string,
-    mediaUrl:string,
-    timestamp:number,
-    commentAddr:string
+    postId: string
+    ownerId: string
+    username: string
+    location: string
+    description: string
+    mediaUrl: string
+    timestamp: number
+    commentAddr: string
 }
 
 export async function countMyPosts() {

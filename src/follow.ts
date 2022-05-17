@@ -1,11 +1,11 @@
 import { getStorage } from './storage'
-import {User} from "./user";
+import { User } from './user'
 
 export type FollowUser = User & {
-    lastPost: string|undefined
+    lastPost: string | undefined
 }
 
-export async function _getAllFollowing():Promise<FollowUser[]> {
+export async function _getAllFollowing(): Promise<FollowUser[]> {
     return getStorage('followDb')
         .iterator({ limit: -1 })
         .collect()

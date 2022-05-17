@@ -3,12 +3,14 @@
   "version": "0.0.1",
   "description": "Pitaya-Core is Pitaya's model & contorller layer",
   "main": "main.js",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "NODE_ENV=production webpack",
     "dev": "NODE_ENV=development webpack -w",
     "type:check": "tsc --noEmit",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "postinstall": "husky install"
   },
   "repository": {
     "type": "git",
@@ -19,11 +21,6 @@
     "url": "https://github.com/pitaya-org/Pitaya-core/issues"
   },
   "homepage": "https://github.com/pitaya-org/Pitaya-core#readme",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "src/**/*.{js,ts}": [
       "eslint --fix",
